@@ -1,20 +1,20 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import FormInput from "./component/forms/FormInput";
 import FormTextArea from "./component/forms/FormTextArea";
 import { useForm } from "react-hook-form";
 import FormSelect from "./component/forms/FormSelect";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { collection, getDocs } from "firebase/firestore";
+import { addDoc, collection, getDocs } from "firebase/firestore";
 import { db } from "./firebase/index";
 
 const formSchema = z.object({
   jobRole: z.string(),
   fullName: z.string().min(3).max(20),
   email: z.string().email(),
-  address: z.string().min(15).max(200),
-  qualification: z.string().min(10).max(200),
-  comments: z.string().min(20).max(100),
+  address: z.string().min(3).max(200),
+  qualification: z.string().min(3).max(200),
+  comments: z.string().min(3).max(100),
 });
 
 const App = () => {
@@ -22,23 +22,36 @@ const App = () => {
     register,
     handleSubmit,
     formState: { errors },
+    reset,
   } = useForm({
     resolver: zodResolver(formSchema),
   });
 
-  const sendThisToServer = (data) => {
-    console.log(data);
+  const [candidates, setCandidates] = useState([]);
+
+  const sendThisToServer = async (data) => {
+    try {
+      const docRef = await addDoc(collection(db, "candidates"), data);
+      console.log("Document written with ID: ", docRef.id);
+      alert("Added as you said!");
+    } catch (e) {
+      console.error("Error adding document: ", e);
+    }
+
+    reset();
   };
 
   useEffect(() => {
     async function getDataFromFirebase() {
       const querySnapshot = await getDocs(collection(db, "candidates"));
-      querySnapshot.forEach((doc) => {
-        console.log(`${doc.id} => ${doc.data()}`);
-      });
+      setCandidates(querySnapshot.docs.map((doc) => doc.data()));
+
+      // querySnapshot.forEach((doc) => {
+      //   console.log(`${doc.id} => ${doc.data()}`, doc.data());
+      // });
 
       if (querySnapshot.docs.length === 0) {
-        console.log("no records!");
+        alert("No records exist!");
       }
     }
 
@@ -102,54 +115,49 @@ const App = () => {
             <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
               <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                 <tr>
-                  <th scope="col" className="px-6 py-3">
-                    Product name
+                  <th scope="col" className="px-6 py-3 w-20">
+                    S. No
                   </th>
                   <th scope="col" className="px-6 py-3">
-                    Color
+                    Full name
                   </th>
                   <th scope="col" className="px-6 py-3">
-                    Category
+                    Job Role
                   </th>
                   <th scope="col" className="px-6 py-3">
-                    Price
+                    Email
+                  </th>
+                  <th scope="col" className="px-6 py-3">
+                    Address
+                  </th>
+                  <th scope="col" className="px-6 py-3">
+                    Qualification
+                  </th>
+                  <th scope="col" className="px-6 py-3">
+                    Comments
                   </th>
                 </tr>
               </thead>
               <tbody>
-                <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                  <th
-                    scope="row"
-                    className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
+                {candidates.map((candidate, index) => (
+                  <tr
+                    key={index}
+                    className="bg-white border-b dark:bg-gray-800 dark:border-gray-700"
                   >
-                    Apple MacBook Pro 17"
-                  </th>
-                  <td className="px-6 py-4">Silver</td>
-                  <td className="px-6 py-4">Laptop</td>
-                  <td className="px-6 py-4">$2999</td>
-                </tr>
-                <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-                  <th
-                    scope="row"
-                    className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
-                  >
-                    Microsoft Surface Pro
-                  </th>
-                  <td className="px-6 py-4">White</td>
-                  <td className="px-6 py-4">Laptop PC</td>
-                  <td className="px-6 py-4">$1999</td>
-                </tr>
-                <tr className="bg-white dark:bg-gray-800">
-                  <th
-                    scope="row"
-                    className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
-                  >
-                    Magic Mouse 2
-                  </th>
-                  <td className="px-6 py-4">Black</td>
-                  <td className="px-6 py-4">Accessories</td>
-                  <td className="px-6 py-4">$99</td>
-                </tr>
+                    <td className="px-6 py-4">{index + 1}</td>
+                    <th
+                      scope="row"
+                      className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
+                    >
+                      {candidate.fullName}
+                    </th>
+                    <td className="px-6 py-4">{candidate.jobRole}</td>
+                    <td className="px-6 py-4">{candidate.email}</td>
+                    <td className="px-6 py-4">{candidate.address}</td>
+                    <td className="px-6 py-4">{candidate.qualification}</td>
+                    <td className="px-6 py-4">{candidate.comments}</td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
