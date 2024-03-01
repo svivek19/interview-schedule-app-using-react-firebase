@@ -59,7 +59,7 @@ const App = () => {
   }, []);
 
   return (
-    <div className="bg-gray-100 min-h-screen">
+    <div className="bg-gray-100 min-h-screen p-2 md:p-10">
       <header className="bg-amber-500 px-10 py-5 text-center font-semibold">
         Interview Scheduled Candidates
       </header>
@@ -145,12 +145,7 @@ const App = () => {
                     className="bg-white border-b dark:bg-gray-800 dark:border-gray-700"
                   >
                     <td className="px-6 py-4">{index + 1}</td>
-                    <th
-                      scope="row"
-                      className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"
-                    >
-                      {candidate.fullName}
-                    </th>
+                    <td className="px-6 py-4">{candidate.fullName}</td>
                     <td className="px-6 py-4">{candidate.jobRole}</td>
                     <td className="px-6 py-4">{candidate.email}</td>
                     <td className="px-6 py-4">{candidate.address}</td>
